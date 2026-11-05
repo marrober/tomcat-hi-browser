@@ -1,8 +1,24 @@
+# Open source unsupported application
+
+Note that this is an open source unsupported application designed to create a simple web UI that displays information about a Red Hat Hardened image.
+
+The UI does require internet access to display results queried from the Red Hat Hardened images.
+
+To vary the resuls of the application change the image tag of the Tomcat image in the dockerfile.
+
 # Tomcat hardened image browser
 
 Java web application that charts known vulnerabilities in the five most recently published plain release tags of `registry.access.redhat.com/hi/tomcat`. It runs on the Red Hat Hardened Tomcat image and refreshes the catalog once an hour.
 
 Plain release tags look like `10.1.60` and `11.0.27`. Tags with `builder` or `jdk` in the name are ignored. Floating aliases such as `latest` and `11` are omitted because they point at one of those releases. Older patch releases remain on the chart after a newer release supersedes them. Counts come from the [Red Hat Hardened Images catalog](https://images.redhat.com/images/tomcat) Grype summaries.
+
+## Clone the repository
+
+To get a local copy of the files clone the repository with the command :
+
+````bash
+git clone git@github.com:marrober/tomcat-hi-browser.git
+````
 
 ## Run locally
 
@@ -14,6 +30,8 @@ mvn -B package
 
 The WAR is `target/tomcat-hi-browser.war`. Deploy it as the root application on Tomcat 10 or 11, then open the server root.
 
+## Build and run locally
+
 Build and run it on the hardened image:
 
 ```bash
@@ -21,6 +39,23 @@ mvn -B package
 podman build -t tomcat-hi-browser .
 podman run --rm -p 8080:8080 tomcat-hi-browser
 ```
+
+## Build and push to a container registry
+
+To build and push the resulting container image to a registry use the commands :
+
+````bash
+cd <root-location-where-repo-was-cloned>
+mvn -B package
+buildah bud --tls-verify=false --pull --isolation=chroot -f Dockerfile -t <image-repo-location>
+buildah push <image-repo-location>
+````
+
+## Run the application
+
+To run the application on OpenShift simply launch the container image from the Topology browser of a namespace.
+
+## Application functionality
 
 The image listens on port 8080 as uid 65532. The page reads `GET /api/vulnerabilities`. `POST /api/vulnerabilities` refreshes immediately; the background task refreshes on its own every hour.
 
