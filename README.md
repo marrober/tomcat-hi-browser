@@ -25,7 +25,7 @@ Container build instructions
 ````bash
 cd <root-location-where-repo-was-cloned>
 mvn -B package
-buildah bud --tls-verify=false --pull --isolation=chroot -f Dockerfile -t <image-repo-location>
+buildah bud --tls-verify=false --layers --pull --isolation=chroot -f Dockerfile -t <image-repo-location>
 buildah push <image-repo-location>
 ````
 
