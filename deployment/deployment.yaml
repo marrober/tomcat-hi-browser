@@ -13,10 +13,12 @@ spec:
     metadata:
       labels:
         app: tomcat-hi-browser
+      annotations:
+        openshift.io/required-scc: restricted-v2
     spec:
       containers:
         - name: tomcat-hi-browser
-          image: image-registry.openshift-image-registry.svc:5000/tomcat-hi-browser/tomcat-hi-browser:latest
+          image: quay.io/marrober/tomcat-hi-browser:3
           imagePullPolicy: Always
           ports:
             - name: http
@@ -45,8 +47,6 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
-            runAsUser: 65532
-            runAsGroup: 65532
             capabilities:
               drop:
                 - ALL
