@@ -20,6 +20,18 @@ podman build -t tomcat-hi-browser .
 podman run --rm -p 8080:8080 tomcat-hi-browser
 ```
 
+Container build instructions
+
+````bash
+mkdir -p layer/usr/local/tomcat/webapps
+cp target/tomcat-hi-browser.war layer/usr/local/tomcat/webapps/ROOT.war
+tar -C layer --owner=65532 --group=65532 -cf root.tar usr
+crane append \
+  -b registry.access.redhat.com/hi/tomcat:11.0.27 \
+  -f root.tar \
+  -t quay.io/marrober/tomcat-hi-browser:4
+````
+
 The image listens on port 8080 as uid 65532. The page reads `GET /api/vulnerabilities`. `POST /api/vulnerabilities` refreshes immediately; the background task refreshes on its own every hour.
 
 | Variable | Default | Purpose |
