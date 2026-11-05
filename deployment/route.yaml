@@ -1,12 +1,14 @@
-apiVersion: route.openshift.io/v1
 kind: Route
+apiVersion: route.openshift.io/v1
 metadata:
-  name: tomcat-hi-browser
-  labels:
-    app: tomcat-hi-browser
+  name: route-tomcat-hi-browser
 spec:
   to:
     kind: Service
     name: tomcat-hi-browser
+    weight: 100
   port:
     targetPort: http
+  tls:
+    termination: edge
+  wildcardPolicy: None

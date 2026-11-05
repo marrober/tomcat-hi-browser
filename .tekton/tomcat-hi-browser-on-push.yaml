@@ -145,6 +145,7 @@ spec:
           resources:
             requests:
               storage: 1Gi
+          storageClassName: lvms-vg1
     - name: basic-auth
       secret:
         secretName: "{{ git_auth_secret }}"
