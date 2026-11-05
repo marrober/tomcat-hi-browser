@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/hi/tomcat:latest
+FROM registry.access.redhat.com/hi/tomcat:11.0.27
 
 # The hardened image runs as uid 65532. Copy as root so the archive is
 # written into the documented webapps directory, then hand it to that user.
