@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: tomcat-hi-browser
-          image: quay.io/marrober/tomcat-hi-browser:4
+          image: quay.io/marrober/tomcat-hi-browser:1
           imagePullPolicy: Always
           ports:
             - name: http
