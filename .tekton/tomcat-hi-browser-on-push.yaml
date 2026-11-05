@@ -1,0 +1,150 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: tomcat-hi-browser-on-push
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[push]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/task: "[git-clone]"
+    pipelinesascode.tekton.dev/max-keep-runs: "3"
+spec:
+  params:
+    - name: repo_url
+      value: "{{ repo_url }}"
+    - name: revision
+      value: "{{ revision }}"
+    - name: image
+      value: "image-registry.openshift-image-registry.svc:5000/{{ target_namespace }}/tomcat-hi-browser:{{ revision }}"
+    - name: image-latest
+      value: "image-registry.openshift-image-registry.svc:5000/{{ target_namespace }}/tomcat-hi-browser:latest"
+  pipelineSpec:
+    params:
+      - name: repo_url
+        type: string
+      - name: revision
+        type: string
+      - name: image
+        type: string
+      - name: image-latest
+        type: string
+    workspaces:
+      - name: source
+      - name: basic-auth
+    tasks:
+      - name: fetch-repository
+        taskRef:
+          name: git-clone
+        params:
+          - name: url
+            value: $(params.repo_url)
+          - name: revision
+            value: $(params.revision)
+          - name: deleteExisting
+            value: "true"
+        workspaces:
+          - name: output
+            workspace: source
+          - name: basic-auth
+            workspace: basic-auth
+      - name: build
+        runAfter:
+          - fetch-repository
+        taskSpec:
+          workspaces:
+            - name: source
+          params:
+            - name: image
+              type: string
+            - name: image-latest
+              type: string
+          volumes:
+            - name: varlibcontainers
+              emptyDir: {}
+          steps:
+            - name: maven-package
+              image: registry.access.redhat.com/ubi9/openjdk-21:latest
+              workingDir: $(workspaces.source.path)
+              securityContext:
+                runAsUser: 0
+              computeResources:
+                requests:
+                  memory: 1Gi
+                limits:
+                  memory: 2Gi
+              command: ["/bin/bash", "-ec"]
+              args:
+                - |
+                  if command -v mvn >/dev/null 2>&1; then
+                    mvn -B -ntp package
+                  else
+                    bash ./mvnw -B -ntp package
+                  fi
+            - name: build-image
+              image: registry.access.redhat.com/ubi9/buildah:latest
+              workingDir: $(workspaces.source.path)
+              securityContext:
+                runAsUser: 0
+                capabilities:
+                  add:
+                    - SETFCAP
+              computeResources:
+                requests:
+                  memory: 1Gi
+                limits:
+                  memory: 2Gi
+              env:
+                - name: BUILDAH_ISOLATION
+                  value: chroot
+                - name: STORAGE_DRIVER
+                  value: vfs
+                - name: HOME
+                  value: /tekton/home
+              volumeMounts:
+                - name: varlibcontainers
+                  mountPath: /var/lib/containers
+              command: ["/bin/bash", "-ec"]
+              args:
+                - |
+                  set -euo pipefail
+                  IMAGE="$(params.image)"
+                  LATEST="$(params.image-latest)"
+                  registry="${IMAGE%%/*}"
+                  token_file=/var/run/secrets/kubernetes.io/serviceaccount/token
+                  buildah bud \
+                    --storage-driver=vfs \
+                    --tls-verify=true \
+                    --pull \
+                    --isolation=chroot \
+                    -f Dockerfile \
+                    -t "$IMAGE" \
+                    -t "$LATEST" \
+                    .
+                  if [ -f "$token_file" ]; then
+                    buildah login \
+                      --tls-verify=false \
+                      --username serviceaccount \
+                      --password-stdin \
+                      "$registry" < "$token_file"
+                  fi
+                  buildah push --storage-driver=vfs --tls-verify=false "$IMAGE"
+                  buildah push --storage-driver=vfs --tls-verify=false "$LATEST"
+        workspaces:
+          - name: source
+            workspace: source
+        params:
+          - name: image
+            value: $(params.image)
+          - name: image-latest
+            value: $(params.image-latest)
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: basic-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"

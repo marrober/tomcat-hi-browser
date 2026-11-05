@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tomcat hardened image vulnerabilities</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="page-header">
+    <div class="header-copy">
+      <p class="eyebrow">Red Hat Hardened Images</p>
+      <h1>Tomcat vulnerability tags</h1>
+      <p class="lede">
+        Severity counts for the five most recently published plain release tags of
+        <code>registry.access.redhat.com/hi/tomcat</code>, such as <code>10.1.60</code>.
+      </p>
+    </div>
+    <button type="button" id="refresh">Refresh now</button>
+  </header>
+
+  <main>
+    <p id="status" class="status" aria-live="polite">Loading the latest vulnerability reports…</p>
+    <p id="error" class="error" hidden></p>
+
+    <section class="card" aria-labelledby="chart-title">
+      <div class="card-heading">
+        <h2 id="chart-title">Vulnerabilities by tag</h2>
+        <ul class="legend">
+          <li><span class="swatch critical"></span>Critical</li>
+          <li><span class="swatch high"></span>High</li>
+          <li><span class="swatch medium"></span>Medium</li>
+          <li><span class="swatch low"></span>Low</li>
+          <li><span class="swatch negligible"></span>Negligible</li>
+          <li><span class="swatch unknown"></span>Unknown</li>
+        </ul>
+      </div>
+      <div id="chart" class="chart" role="img" aria-label="Stacked bar chart of vulnerabilities for the five newest plain Tomcat release tags. Values appear in the table below."></div>
+    </section>
+
+    <section class="card">
+      <h2>Report detail</h2>
+      <div class="table-wrap">
+        <table>
+          <caption>Vulnerability counts for each selected image tag.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Tag</th>
+              <th scope="col">Published</th>
+              <th scope="col">Scanned</th>
+              <th scope="col">Critical</th>
+              <th scope="col">High</th>
+              <th scope="col">Medium</th>
+              <th scope="col">Low</th>
+              <th scope="col">Negligible</th>
+              <th scope="col">Unknown</th>
+              <th scope="col">Total</th>
+            </tr>
+          </thead>
+          <tbody id="report-body">
+            <tr>
+              <td colspan="10">Waiting for the first catalog refresh.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="note">
+      Plain release tags look like <code>10.1.60</code> or <code>11.0.27</code>. Tags with
+      <code>builder</code> or <code>jdk</code> in the name are ignored, and floating aliases such as
+      <code>latest</code> and <code>11</code> are left out because they point at one of the plain releases.
+      The application asks the catalog again every hour and replaces this chart when a newer release tag is published.
+      Counts are Grype summaries from the
+      <a href="https://images.redhat.com/images/tomcat">Red Hat Hardened Images catalog</a>.
+    </p>
+  </main>
+  <script src="js/app.js"></script>
+</body>
+</html>

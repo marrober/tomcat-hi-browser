@@ -1,0 +1,8 @@
+.git
+.tekton
+src
+README.md
+.gitignore
+.idea
+*.iml
+.DS_Store
