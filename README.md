@@ -1,6 +1,6 @@
 # Tomcat clock
 
-A Tomcat application that shows the local time as a large digital clock, `HH:MM:SS`.
+A Tomcat application that shows a large digital clock, `HH:MM:SS`, using the time of the host running the application.
 
 ## Run locally
 

@@ -1,22 +1,32 @@
 const clock = document.getElementById("clock");
 
-function pad(value) {
-  return String(value).padStart(2, "0");
+function fit() {
+  const availableWidth = document.documentElement.clientWidth * 0.98;
+  const availableHeight = document.documentElement.clientHeight * 0.86;
+  clock.style.fontSize = "100px";
+  const scale = Math.min(availableWidth / clock.scrollWidth, availableHeight / clock.scrollHeight);
+  clock.style.fontSize = Math.floor(100 * scale) + "px";
 }
 
-function render() {
-  const now = new Date();
-  const hours = pad(now.getHours());
-  const minutes = pad(now.getMinutes());
-  const seconds = pad(now.getSeconds());
-  clock.textContent = hours + ":" + minutes + ":" + seconds;
-  clock.dateTime = now.toISOString();
+async function tick() {
+  let delay = 1000;
+  try {
+    const response = await fetch("api/time", { cache: "no-store" });
+    if (response.ok) {
+      const time = (await response.text()).trim();
+      clock.textContent = time;
+      clock.dateTime = time;
+      fit();
+    }
+    const requested = Number(response.headers.get("X-Delay-Millis"));
+    if (Number.isFinite(requested) && requested > 0) {
+      delay = requested;
+    }
+  } catch (error) {
+    clock.textContent = "--:--:--";
+  }
+  window.setTimeout(tick, delay);
 }
 
-function tick() {
-  render();
-  window.setTimeout(tick, 1000 - (Date.now() % 1000));
-}
-
-render();
-window.setTimeout(tick, 1000 - (Date.now() % 1000));
+window.addEventListener("resize", fit);
+tick();

@@ -25,7 +25,7 @@ body {
 
 main {
   width: 100%;
-  padding: 1rem;
+  padding: 0;
   text-align: center;
 }
 
@@ -33,9 +33,10 @@ main {
   display: inline-block;
   font-family: "SF Mono", "Cascadia Mono", "Roboto Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  font-size: clamp(4.5rem, 18vw, 16rem);
-  letter-spacing: 0.06em;
-  line-height: 1;
+  font-weight: 700;
+  font-size: 42vw;
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  white-space: nowrap;
   text-shadow: 0 0 28px var(--glow);
 }
