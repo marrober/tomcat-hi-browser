@@ -2,44 +2,28 @@
 
 A Tomcat application that shows a large digital clock, `HH:MM:SS`, using the time of the host running the application.
 
-## Run locally
+## Build and deploy
 
-Requires JDK 17 or newer and Maven.
+### Build
 
-```bash
-mvn -B package
-```
-
-The WAR is `target/tomcat-hi-browser.war`. Deploy it as the root application on Tomcat 10 or 11, then open the server root.
-
-Build and run it on the hardened image:
-
-```bash
-mvn -B package
-podman build -t tomcat-hi-browser .
-podman run --rm -p 8080:8080 tomcat-hi-browser
-```
-
-Container build instructions
+To build the application in the /target directory use :
 
 ````bash
 cd <root-location-where-repo-was-cloned>
 mvn -B package
+````
+
+To create a new container image using the dockerfile use :
+
+````bash
 buildah bud --tls-verify=false --layers --pull --isolation=chroot -f Dockerfile -t <image-repo-location>
 buildah push <image-repo-location>
 ````
 
-The image listens on port 8080 as uid 65532. The page reads `GET /api/vulnerabilities`. `POST /api/vulnerabilities` refreshes immediately; the background task refreshes on its own every hour.
+### Deploy
 
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `HIBROWSER_TAG_LIMIT` | `5` | Number of plain release tags to chart |
-| `HIBROWSER_REFRESH_MINUTES` | `60` | How often to look for new tags |
+Deployment resources are in the /deployment directory. The container image location needs to be updated to reference your specific repository and the version number that you push above.
 
-## Pipelines as Code
+## Experimenting
 
-`.tekton/tomcat-hi-browser-on-pr.yaml` runs on pull requests to `main`. It clones the repository, runs `mvn package`, and builds the container with Buildah.
-
-`.tekton/tomcat-hi-browser-on-push.yaml` runs on pushes to `main`. It performs the same build, then pushes the image to the OpenShift internal registry in the pipeline namespace, tagged with the git revision and `latest`.
-
-Both runs are Pipelines as Code `PipelineRun` resources. They pull the `git-clone` task through the `pipelinesascode.tekton.dev/task` annotation. Register the repository with the Pipelines as Code controller (`tkn pac create repository`) so pushes and pull requests create those runs. The pipeline service account needs permission to run Buildah and to push to the namespace image stream.
+If you want to experiment with different Hardened image versions then simply update the reference in the dockerfile and rebuild, creating a new image tag each time.
